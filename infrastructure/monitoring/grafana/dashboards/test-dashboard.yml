@@ -1,0 +1,17 @@
+{
+  "id": null,
+  "title": "Microservices CPU Usage",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "CPU Usage",
+      "targets": [
+        {
+          "expr": "container_cpu_usage_seconds_total",
+          "interval": "",
+          "legendFormat": "{{container}}"
+        }
+      ]
+    }
+  ]
+}

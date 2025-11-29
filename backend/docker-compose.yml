@@ -1,0 +1,150 @@
+version: "3.9"
+
+services:
+  # -----------------------------
+  # API GATEWAY
+  # -----------------------------
+  api-gateway:
+    build:
+      context: ./api-gateway/nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - auth-service
+      - data-ingestion-service
+      - analytics-service
+      - processing-service
+
+  # -----------------------------
+  # AUTH DB
+  # -----------------------------
+  auth-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth123
+      POSTGRES_DB: auth_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+
+  # -----------------------------
+  # DATA-INGESTION DB
+  # -----------------------------
+  data-ingestion-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ingestion_user
+      POSTGRES_PASSWORD: ingest123
+      POSTGRES_DB: ingestion_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - data-ingestion-db-data:/var/lib/postgresql/data
+
+  # -----------------------------
+  # ANALYTICS DB
+  # -----------------------------
+  analytics-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: analytics_user
+      POSTGRES_PASSWORD: analytics123
+      POSTGRES_DB: analytics_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - analytics-db-data:/var/lib/postgresql/data  
+    
+  # -----------------------------
+  # PROCRESSING DB
+  # -----------------------------
+  processing-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: processing_user
+      POSTGRES_PASSWORD: process123
+      POSTGRES_DB: processing_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - processing-db-data:/var/lib/postgresql/data
+
+  # -----------------------------
+  # AUTH SERVICE
+  # -----------------------------
+  auth-service:
+    build:
+      context: ./microservices/auth-service
+    depends_on:
+      - auth-db
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./microservices/auth-service/.env
+    
+  # -----------------------------
+  # DATA INGESTION SERVICE
+  # -----------------------------
+  data-ingestion-service:
+    build:
+      context: ./microservices/data-ingestion-service
+    depends_on:
+      - data-ingestion-db
+    ports:
+      - "8001:8000"
+    env_file:
+      - ./microservices/data-ingestion-service/.env
+
+  # -----------------------------
+  # ANALYTICS SERVICE
+  # -----------------------------
+  analytics-service:
+    build:
+      context: ./microservices/analytics-service
+    depends_on:
+      - analytics-db
+    ports:
+      - "8002:8000"
+    env_file:
+      - ./microservices/analytics-service/.env
+
+  # -----------------------------
+  # PROCESSING SERVICE
+  # -----------------------------
+  processing-service:
+    build:
+      context: ./microservices/processing-service
+    depends_on:
+      - processing-db
+    ports:
+      - "8003:8000"
+    env_file:
+      - ./microservices/processing-service/.env
+
+  # -----------------------------
+  # PROMETHEUS
+  # -----------------------------
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ../infrastructure/monitoring/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  # -----------------------------
+  # GRAFANA
+  # -----------------------------
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  auth-db-data:
+  data-ingestion-db-data:
+  analytics-db-data:
+  processing-db-data:
