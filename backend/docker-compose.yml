@@ -16,6 +16,24 @@ services:
       - processing-service
 
   # -----------------------------
+  # PGADMIN
+  # -----------------------------
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - auth-db
+      - analytics-db
+      - processing-db
+      - data-ingestion-db
+
+  # -----------------------------
   # AUTH DB
   # -----------------------------
   auth-db:
@@ -102,26 +120,26 @@ services:
   # -----------------------------
   analytics-service:
     build:
-      context: ./microservices/analytics-service
+      context: ./microservices/analytics-reporting-service
     depends_on:
       - analytics-db
     ports:
       - "8002:8000"
     env_file:
-      - ./microservices/analytics-service/.env
+      - ./microservices/data-ingestion-service/.env
 
   # -----------------------------
   # PROCESSING SERVICE
   # -----------------------------
   processing-service:
     build:
-      context: ./microservices/processing-service
+      context: ./microservices/data-processing-service
     depends_on:
       - processing-db
     ports:
       - "8003:8000"
     env_file:
-      - ./microservices/processing-service/.env
+      - ./microservices/data-processing-service/.env
 
   # -----------------------------
   # PROMETHEUS
@@ -129,7 +147,7 @@ services:
   prometheus:
     image: prom/prometheus
     volumes:
-      - ../infrastructure/monitoring/prometheus/prometheus.yml
+      - ../infrastructure/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
 
@@ -138,6 +156,7 @@ services:
   # -----------------------------
   grafana:
     image: grafana/grafana
+
     ports:
       - "3000:3000"
     depends_on:
@@ -148,3 +167,4 @@ volumes:
   data-ingestion-db-data:
   analytics-db-data:
   processing-db-data:
+  pgadmin-data:
