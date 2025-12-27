@@ -1,41 +1,15 @@
-# -----------------------
-# 1. Build Stage
-# -----------------------
-
-FROM golang:1.23 AS builder
+FROM golang:1.25-alpine
 
 WORKDIR /app
 
-# Download modules before copying
+RUN go install github.com/air-verse/air@latest
+RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+
 COPY go.mod go.sum ./
-RUN go mod download
+RUN go mod download && go mod verify
 
-# Copy the source code 
-COPY . .
+COPY . ./
 
-# Build the Go binary
-RUN CGO_ENABLED=0 GOOS=linux go build -o auth-service ./cmd/server.go
+EXPOSE 8001
 
-# -----------------------
-# 2. Runtime Stage
-# -----------------------
-
-FROM alpine:latest
-
-# Install certificates + dockerize
-RUN apk --no-cache add ca-certificates \
-    && wget -qO /usr/local/bin/dockerize \
-           https://github.com/jwilder/dockerize/releases/download/v0.6.1/dockerize-linux-amd64-v0.6.1.tar.gz \
-    && tar -C /usr/local/bin -xzvf /usr/local/bin/dockerize \
-    && chmod +x /usr/local/bin/dockerize
-
-WORKDIR /app
-
-# Copy binary from builder
-COPY --from=builder /app/auth-service .
-
-# -----------------
-# START COMMAND WITH DEPENDENCY WAITING
-# -----------------
-    
-CMD ["dockerize", "-wait", "tcp://auth-db:5432", "-timeout", "60s", "./auth-service"]
+CMD ["air"]

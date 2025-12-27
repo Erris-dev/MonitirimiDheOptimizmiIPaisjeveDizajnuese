@@ -1,0 +1,20 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+cmd = "go build -o ./tmp/main ."
+bin = "tmp/main"
+delay = 1000
+exclude_dir = ["assets", "tmp", "vendor", "testdata"]
+exclude_regex = ["_test.go"]
+include_ext = ["go", "tpl", "tmpl", "html"]
+poll = true
+
+[color]
+build = "yellow"
+main = "magenta"
+runner = "green"
+watcher = "cyan"
+
+[log]
+time = true

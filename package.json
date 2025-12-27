@@ -1,0 +1,14 @@
+{
+    "name": "MonitorimiDheOptimizmiIPaisjeveDizajnuese",
+    "private": true,
+    "version": "1.0.0",
+    "scripts": {
+        "dev:auth": "docker-compose up auth-service",
+        "sqlc:generate": "sqlc generate -f ./backend/microservices/auth-service/sqlc.yaml",
+        "sqlc:dev": "sqlc dev",
+        "auth:migrate": "docker compose exec auth-service goose -dir ./src/db/migrations postgres \"postgres://authuser:auth123@auth-db:5432/authdb?sslmode=disable\" up"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}

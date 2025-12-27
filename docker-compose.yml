@@ -1,0 +1,60 @@
+services: 
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: erris@dev.com
+      PGADMIN_DEFAULT_PASSWORD: 123
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - auth-db
+    networks:
+      - service-network
+
+  #================= Microservice: Auth Service ==================#
+  auth-service:
+    container_name: auth-service
+    image: authservice
+    build:
+      context: ./backend/microservices/auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./backend/microservices/auth-service:/app
+    command: air
+    env_file:
+      - ./backend/microservices/auth-service/.env
+    depends_on:
+      - auth-db
+    networks:
+      - service-network
+  auth-db:
+    container_name: auth-db
+    image: postgres:15
+    environment:
+      POSTGRES_USER: authuser
+      POSTGRES_PASSWORD: auth123
+      POSTGRES_DB: authdb
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U authuser -d authdb" ]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    networks:
+      - service-network
+
+
+networks:
+  service-network:
+    driver: bridge
+  
+volumes:
+  pgadmin-data:
+  auth-db-data:
