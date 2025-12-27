@@ -11,5 +11,7 @@ func RegisterAuthRoutes(router *gin.Engine, authController *auth.AuthController)
 	{
 		authRoutes.POST("/register", authController.Register)
 		authRoutes.POST("/login", authController.Login)
+		authRoutes.GET("/google/login", authController.GoogleLogin)
+		authRoutes.GET("/google/callback", authController.GoogleCallback)
 	}
 }

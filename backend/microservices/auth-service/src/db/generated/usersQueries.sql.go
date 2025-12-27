@@ -232,6 +232,33 @@ func (q *Queries) FindUserByEmail(ctx context.Context, email string) (User, erro
 	return i, err
 }
 
+const findUserByOauthProvider = `-- name: FindUserByOauthProvider :one
+SELECT id, email, password_hash, oauth_provider, oauth_provider_id, mfa_enabled, risk_score, created_at, updated_at FROM users 
+WHERE oauth_provider = $1 AND oauth_provider_id = $2
+`
+
+type FindUserByOauthProviderParams struct {
+	OauthProvider   pgtype.Text `json:"oauth_provider"`
+	OauthProviderID pgtype.Text `json:"oauth_provider_id"`
+}
+
+func (q *Queries) FindUserByOauthProvider(ctx context.Context, arg FindUserByOauthProviderParams) (User, error) {
+	row := q.db.QueryRow(ctx, findUserByOauthProvider, arg.OauthProvider, arg.OauthProviderID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.OauthProvider,
+		&i.OauthProviderID,
+		&i.MfaEnabled,
+		&i.RiskScore,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updateDeviceLastSeen = `-- name: UpdateDeviceLastSeen :exec
 UPDATE devices 
 SET last_seen = $2 

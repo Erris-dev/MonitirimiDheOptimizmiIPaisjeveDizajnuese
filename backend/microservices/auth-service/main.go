@@ -15,6 +15,7 @@ func main() {
 	gin.SetMode(gin.DebugMode)
 
 	dbPool, err := config.InitDB()
+	auth.InitGoogleOAuth()
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}

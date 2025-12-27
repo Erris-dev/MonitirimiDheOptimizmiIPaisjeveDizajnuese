@@ -60,3 +60,7 @@ WHERE user_id = $1 AND ip_address = $2;
 UPDATE devices 
 SET last_seen = $2 
 WHERE id = $1;
+
+-- name: FindUserByOauthProvider :one
+SELECT * FROM users 
+WHERE oauth_provider = $1 AND oauth_provider_id = $2;

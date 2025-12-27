@@ -8,9 +8,11 @@ require (
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/mssola/user_agent v0.6.0
 	golang.org/x/crypto v0.40.0
+	golang.org/x/oauth2 v0.34.0
 )
 
 require (
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	github.com/bytedance/sonic v1.14.0 // indirect
 	github.com/bytedance/sonic/loader v0.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
