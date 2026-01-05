@@ -1,14 +1,28 @@
 {
-    "name": "MonitorimiDheOptimizmiIPaisjeveDizajnuese",
+    "name": "monitorimidheoptimizmiipaisjevedizajnuese",
     "private": true,
     "version": "1.0.0",
     "scripts": {
         "dev:auth": "docker-compose up auth-service",
+        "dev:ingest": "docker-compose up --build zookeeper kafka ingest-service",
         "sqlc:generate": "sqlc generate -f ./backend/microservices/auth-service/sqlc.yaml",
         "sqlc:dev": "sqlc dev",
         "auth:migrate": "docker compose exec auth-service goose -dir ./src/db/migrations postgres \"postgres://authuser:auth123@auth-db:5432/authdb?sslmode=disable\" up"
     },
     "devDependencies": {
         "concurrently": "^8.2.2"
-    }
+    },
+    "description": "This repository is organized as a monorepo, primarily separated into `backend` (Go microservices), `frontend`, and supporting infrastructure for deployment and monitoring.",
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Erris-dev/MonitirimiDheOptimizmiIPaisjeveDizajnuese.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Erris-dev/MonitirimiDheOptimizmiIPaisjeveDizajnuese/issues"
+    },
+    "homepage": "https://github.com/Erris-dev/MonitirimiDheOptimizmiIPaisjeveDizajnuese#readme"
 }
