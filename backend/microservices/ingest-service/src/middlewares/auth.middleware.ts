@@ -10,10 +10,9 @@ declare global {
 }
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ error: "Missing Authorization header" });
+  const token = req.cookies.access_token
+  if (!token) return res.status(401).json({ error: "Missing auth cookie" });
 
-  const token = authHeader.split(" ")[1];
   try {
     const secret = process.env.JWT_SECRET || "defaultsecret";
     const payload: any = jwt.verify(token, secret);

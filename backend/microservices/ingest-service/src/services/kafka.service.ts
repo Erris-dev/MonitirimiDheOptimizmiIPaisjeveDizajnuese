@@ -2,7 +2,7 @@ import { Kafka } from "kafkajs";
 import { Metric } from "../models/metrics";
 
 class KafkaService {
-  private kafka = new Kafka({ brokers: [process.env.KAFKA_BROKER || "localhost:9092"] });
+  private kafka = new Kafka({ brokers: [process.env.KAFKA_BROKER || "kafka:29092"] });
   private producer = this.kafka.producer();
   private topic = "metrics";
 
