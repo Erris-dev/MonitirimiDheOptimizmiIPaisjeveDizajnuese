@@ -17,3 +17,5 @@ coverage/
 *.class
 *.jar
 *.pyc
+__pycache__
+*.pkl

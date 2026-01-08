@@ -1,21 +1,22 @@
-import { Metric } from "../models/metrics";
+// services/metrics.service.ts
+import { UserMetricsEvent } from "../models/metrics";
 import { kafkaService } from "./kafka.service";
 
 export class MetricsService {
-  private metricsStore: Metric[] = []; 
+  private metricsStore: UserMetricsEvent[] = [];
 
-  async storeAndForward(metrics: Metric[], userId?: string) {
-    // attach userId if provided
-    const metricsWithUser = metrics.map(m => ({ ...m, userId }));
+  // Accept a single metric object instead of an array
+  async storeAndForward(metric: UserMetricsEvent, userId?: string) {
+    const metricWithUser = { ...metric, userId };
 
-    // store metrics
-    metricsWithUser.forEach(m => this.metricsStore.push(m));
+    // Store
+    this.metricsStore.push(metricWithUser);
 
-    // forward to Kafka
-    await kafkaService.sendMetrics(metricsWithUser);
+    // Forward to Kafka as a single-element array
+    await kafkaService.sendMetrics([metricWithUser]);
   }
 
-  async getAll(): Promise<Metric[]> {
+  async getAll(): Promise<UserMetricsEvent[]> {
     return this.metricsStore;
   }
 }
