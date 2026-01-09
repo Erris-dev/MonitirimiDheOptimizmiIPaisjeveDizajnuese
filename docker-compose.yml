@@ -122,7 +122,39 @@ services:
     networks:
       - service-network
 
+  mongo:
+      container_name: mongo
+      image: mongo:latest
+      ports:
+        - "27017:27017"
+      volumes:
+        - mongo-data:/data/db
+      networks:
+        - service-network
 
+    # ================= Microservice: Analytical Service =================
+  analytical-service:
+      container_name: analytical-service
+      build:
+        context: ./backend/microservices/analytics-service
+        dockerfile: Dockerfile
+      ports:
+        - "4000:4000"
+      volumes:
+        - ./backend/microservices/analytics-service:/app
+        - /app/node_modules # Prevents local node_modules from overwriting container ones
+      environment:
+        - NODE_ENV=development
+        - KAFKA_BROKERS=kafka:29092
+        - MONGO_URI=mongodb://mongo:27017/health_db
+        - PORT=4000
+      env_file:
+        - ./backend/microservices/analytics-service/.env
+      depends_on:
+        - kafka
+        - mongo
+      networks:
+        - service-network
 
 networks:
   service-network:
@@ -131,3 +163,4 @@ networks:
 volumes:
   pgadmin-data:
   auth-db-data:
+  mongo-data:
