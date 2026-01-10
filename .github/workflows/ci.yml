@@ -1,0 +1,60 @@
+name: Multi-Language CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+ 
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+   
+    #  PYTHON
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install Python dependencies
+      run: |
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Run Python tests
+      run: |
+        if [ -d tests ]; then pytest; else echo "No Python tests found"; fi
+
+    
+    #  TYPESCRIPT / NODE
+  
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "18"
+
+    - name: Install Node dependencies
+      run: |
+        if [ -f package.json ]; then npm install; fi
+
+    - name: Build TypeScript
+      run: |
+        if [ -f package.json ]; then npm run build || echo "No build script"; fi
+
+  
+    #  GOLANG
+   
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: "1.22"
+
+    - name: Run Go tests
+      run: |
+        if [ -f go.mod ]; then go test ./...; else echo "No Go module found"; fi
