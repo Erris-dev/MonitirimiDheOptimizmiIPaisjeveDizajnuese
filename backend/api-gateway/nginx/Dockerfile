@@ -1,19 +1,13 @@
-FROM nginx:1.27-alpine
+FROM nginx:alpine
 
-# Delete default config so it doesn’t conflict
-RUN rm -f /etc/nginx/conf.d/default.conf
+# Remove the default Nginx configuration
+RUN rm /etc/nginx/conf.d/default.conf
 
-# Copy global NGINX config
-COPY nginx.conf /etc/nginx/nginx.conf
+# Copy your main config (the one that includes conf.d/*.conf)
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
-# Copy all service-level route configs
-COPY conf.d /etc/nginx/conf.d
-
-# Optional: custom error pages
-# COPY errors /usr/share/nginx/html/errors
-
-# Ensure correct permissions
-RUN chmod -R 755 /etc/nginx
+# Copy all your service-specific routes (auth.conf, ingest.conf, anal.conf)
+COPY nginx/conf.d/ /etc/nginx/conf.d/
 
 EXPOSE 80
 
