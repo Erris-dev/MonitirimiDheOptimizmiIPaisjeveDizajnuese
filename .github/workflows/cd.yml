@@ -1,0 +1,16 @@
+cd:
+  name: Continuous Deployment (Simulated)
+  needs: ci
+  runs-on: ubuntu-latest
+
+  steps:
+  - name: Prepare deployment artifacts
+    run: |
+      echo "Preparing build artifacts..."
+      mkdir -p artifacts
+      echo "Build completed at $(date)" > artifacts/info.txt
+
+  - name: Simulated deployment
+    run: |
+      echo "CI passed successfully."
+      echo "Application deployed to target environment (simulation)."
