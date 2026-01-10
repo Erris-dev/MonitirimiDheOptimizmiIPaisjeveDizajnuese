@@ -79,6 +79,19 @@ services:
       - auth-db
     networks:
       - service-network
+  # ================= API Gateways =================
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+    container_name: api-gateway
+    ports:
+      - "80:80" 
+    depends_on:
+      - auth-service
+      - ingest-service
+      - analytical-service
+    networks:
+      - service-network
 
   # ================= Microservices =================
   auth-service:

@@ -30,9 +30,7 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
-app.use('/api', apiRoutes);
-
-app.get('/api/ping', (req, res) => res.send('pong'));
+app.use('/', apiRoutes);
 
 const startServer = async () => {
   try {
