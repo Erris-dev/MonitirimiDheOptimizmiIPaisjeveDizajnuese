@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytical-service
+spec:
+  replicas: 2 # Kubernetes can now scale your service automatically
+  selector:
+    matchLabels:
+      app: analytical-service
+  template:
+    metadata:
+      labels:
+        app: analytical-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "4000"
+    spec:
+      containers:
+      - name: analytical-service
+        image: analytical-service:latest # Use your local or registry image
+        ports:
+        - containerPort: 4000
+        env:
+        - name: KAFKA_BROKERS
+          value: "kafka-service:9092"
+        - name: MONGO_URI
+          value: "mongodb://mongo-service:27017/health_db"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytical-service
+spec:
+  selector:
+    app: analytical-service
+  ports:
+    - protocol: TCP
+      port: 4000
+      targetPort: 4000

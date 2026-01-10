@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingest-service
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ingest-service
+  template:
+    metadata:
+      labels:
+        app: ingest-service
+      annotations:
+        # This tells Prometheus to scrape the Python metrics we set up
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5000"
+    spec:
+      containers:
+      - name: ingest-service
+        image: ingest-service:latest  # Ensure this image is in your local registry
+        ports:
+        - containerPort: 5000
+        env:
+        - name: KAFKA_BROKER
+          value: "kafka-service:9092"
+        - name: APP_PORT
+          value: "5000"
+        # Reference any sensitive keys from a Secret if needed
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingest-service
+spec:
+  selector:
+    app: ingest-service
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+  type: ClusterIP # Use LoadBalancer if you want an external IP for data ingestion
