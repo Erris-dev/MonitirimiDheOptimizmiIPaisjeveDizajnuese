@@ -1,5 +1,5 @@
 import { Kafka } from "kafkajs";
-import { Metric } from "../models/metrics";
+import { UserMetricsEvent } from "../models/metrics";
 
 class KafkaService {
   private kafka = new Kafka({ brokers: [process.env.KAFKA_BROKER || "kafka:29092"] });
@@ -11,12 +11,19 @@ class KafkaService {
     console.log("Kafka connected");
   }
 
-  async sendMetrics(metrics: Metric[]) {
+  /**
+   * Send one or more metrics to Kafka
+   */
+  async sendMetrics(metrics: UserMetricsEvent | UserMetricsEvent[]) {
+    // Ensure metrics is always an array
+    const metricsArray = Array.isArray(metrics) ? metrics : [metrics];
+
     await this.producer.send({
       topic: this.topic,
-      messages: metrics.map(m => ({ value: JSON.stringify(m) })),
+      messages: metricsArray.map(m => ({ value: JSON.stringify(m) })),
     });
-    console.log(`Forwarded ${metrics.length} metrics to Kafka`);
+
+    console.log(`Forwarded ${metricsArray.length} metric(s) to Kafka`);
   }
 }
 

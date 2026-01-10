@@ -6,8 +6,7 @@ const insightSchema = new Schema({
     required: true,
     index: true 
   },
-  // Use 'Mixed' or a flexible Object for metrics 
-  // because AI/Kafka response structures often change
+
   predictions: {
     type: Schema.Types.Mixed, 
     required: true
@@ -17,12 +16,10 @@ const insightSchema = new Schema({
     required: true
   },
   
-  // Store the full Markdown string from Groq here
   aiAnalysis: {
     type: String
   },
 
-  // Keep this for future chat features!
   aiConversation: [{
     role: { type: String, enum: ['user', 'assistant'] },
     content: String,

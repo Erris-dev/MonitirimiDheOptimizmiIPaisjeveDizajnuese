@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import client from 'prom-client';
 
 import { connectDB } from './config/db';
 import { initSocket } from './services/socket.service';
@@ -14,6 +15,17 @@ dotenv.config();
 const app = express();
 const httpServer = createServer(app);
 
+// --- PROMETHEUS SETUP ---
+// Initialize metrics registry and default metrics (CPU, Memory, etc.)
+const register = new client.Registry();
+client.collectDefaultMetrics({ register });
+
+// Expose the /metrics endpoint
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
+
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
@@ -24,13 +36,8 @@ app.get('/api/ping', (req, res) => res.send('pong'));
 
 const startServer = async () => {
   try {
-    // Connect to Database
     await connectDB();
-
-    // Initialize WebSockets
     initSocket(httpServer);
-
-    // Start Kafka Consumer (Background Service)
     await startKafka();
 
     const PORT = process.env.PORT || 4000;
@@ -38,6 +45,7 @@ const startServer = async () => {
       console.log(`
       🚀 Analytical Service is screaming!
       📡 API: http://localhost:${PORT}/api
+      📊 Metrics: http://localhost:${PORT}/metrics
       🔌 WebSockets: ws://localhost:${PORT}
       `);
     });
