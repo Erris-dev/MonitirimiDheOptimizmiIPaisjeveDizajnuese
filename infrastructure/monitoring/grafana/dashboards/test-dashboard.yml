@@ -1,17 +1,68 @@
 {
   "id": null,
-  "title": "Microservices CPU Usage",
+  "title": "Health Guard: Microservices Overview",
+  "tags": ["infrastructure", "monitoring"],
+  "timezone": "browser",
   "panels": [
     {
-      "type": "graph",
-      "title": "CPU Usage",
+      "title": "Service Status (Up/Down)",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "up", "legendFormat": "{{job}}" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ]
+        }
+      }
+    },
+    {
+      "title": "CPU Usage per Service",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 0 },
       "targets": [
         {
-          "expr": "container_cpu_usage_seconds_total",
-          "interval": "",
-          "legendFormat": "{{container}}"
+          "expr": "rate(process_cpu_seconds_total[1m]) * 100",
+          "legendFormat": "{{job}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "percent" }
+      }
+    },
+    {
+      "title": "Memory Consumption (Heap)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "targets": [
+        {
+          "expr": "nodejs_heap_size_total_bytes OR go_memstats_heap_alloc_bytes OR process_resident_memory_bytes",
+          "legendFormat": "{{job}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "bytes" }
+      }
+    },
+    {
+      "title": "Kafka Data Flow (Messages/min)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "targets": [
+        {
+          "expr": "rate(processing_service_messages_total[1m]) * 60",
+          "legendFormat": "Processed Messages"
+        },
+        {
+          "expr": "rate(ingest_packets_total[1m]) * 60",
+          "legendFormat": "Ingested Packets"
         }
       ]
     }
-  ]
+  ],
+  "schemaVersion": 36,
+  "refresh": "5s"
 }

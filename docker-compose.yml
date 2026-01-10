@@ -1,5 +1,7 @@
-services: 
+version: '3.8'
 
+services:
+  # ================= Infrastructure: Messaging =================
   zookeeper:
     container_name: zookeeper
     image: confluentinc/cp-zookeeper:7.4.0
@@ -16,8 +18,7 @@ services:
       retries: 5
     networks:
       - service-network
-  
-  # ================= Kafka =================
+
   kafka:
     container_name: kafka
     image: confluentinc/cp-kafka:7.4.0
@@ -36,6 +37,34 @@ services:
     networks:
       - service-network
 
+  # ================= Databases =================
+  auth-db:
+    container_name: auth-db
+    image: postgres:15
+    environment:
+      POSTGRES_USER: authuser
+      POSTGRES_PASSWORD: auth123
+      POSTGRES_DB: authdb
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U authuser -d authdb" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - service-network
+
+  mongo:
+    container_name: mongo
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - service-network
+
   pgadmin:
     container_name: pgadmin
     image: dpage/pgadmin4
@@ -51,10 +80,9 @@ services:
     networks:
       - service-network
 
-  #================= Microservice: Auth Service ==================#
+  # ================= Microservices =================
   auth-service:
     container_name: auth-service
-    image: authservice
     build:
       context: ./backend/microservices/auth-service
       dockerfile: Dockerfile
@@ -70,25 +98,6 @@ services:
     networks:
       - service-network
 
-  auth-db:
-    container_name: auth-db
-    image: postgres:15
-    environment:
-      POSTGRES_USER: authuser
-      POSTGRES_PASSWORD: auth123
-      POSTGRES_DB: authdb
-    volumes:
-      - auth-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U authuser -d authdb" ]
-      interval: 1m30s
-      timeout: 30s
-      retries: 5
-      start_period: 30s
-    networks:
-      - service-network
-
-  #================= Microservice: Ingest Service ==================#
   ingest-service:
     container_name: ingest-service
     build:
@@ -105,7 +114,6 @@ services:
     networks:
       - service-network
 
-  #================= Microservice: Processing Service ==================#
   processing-service:
     container_name: processing-service
     build:
@@ -122,45 +130,103 @@ services:
     networks:
       - service-network
 
-  mongo:
-      container_name: mongo
-      image: mongo:latest
-      ports:
-        - "27017:27017"
-      volumes:
-        - mongo-data:/data/db
-      networks:
-        - service-network
-
-    # ================= Microservice: Analytical Service =================
   analytical-service:
-      container_name: analytical-service
-      build:
-        context: ./backend/microservices/analytics-service
-        dockerfile: Dockerfile
-      ports:
-        - "4000:4000"
-      volumes:
-        - ./backend/microservices/analytics-service:/app
-        - /app/node_modules # Prevents local node_modules from overwriting container ones
-      environment:
-        - NODE_ENV=development
-        - KAFKA_BROKERS=kafka:29092
-        - MONGO_URI=mongodb://mongo:27017/health_db
-        - PORT=4000
-      env_file:
-        - ./backend/microservices/analytics-service/.env
-      depends_on:
-        - kafka
-        - mongo
-      networks:
-        - service-network
+    container_name: analytical-service
+    build:
+      context: ./backend/microservices/analytics-service
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend/microservices/analytics-service:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - KAFKA_BROKERS=kafka:29092
+      - MONGO_URI=mongodb://mongo:27017/health_db
+      - PORT=4000
+    env_file:
+      - ./backend/microservices/analytics-service/.env
+    depends_on:
+      - kafka
+      - mongo
+    networks:
+      - service-network
+
+  # ================= Monitoring Stack =================
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./infrastructure/monitoring/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - service-network
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./infrastructure/monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - grafana-storage:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - service-network
+
+  alertmanager:
+    container_name: alertmanager
+    image: prom/alertmanager:latest
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./infrastructure/monitoring/alertmanager/config.yml:/etc/alertmanager/config.yml
+    networks:
+      - service-network
+
+  # ================= Exporters =================
+  node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    networks:
+      - service-network
+
+  kafka-exporter:
+    container_name: kafka-exporter
+    image: danielqsj/kafka-exporter 
+    command: ["--kafka.server=kafka:29092"]
+    ports:
+      - "9308:9308"
+    networks:
+      - service-network
+
+  postgres-exporter:
+    container_name: postgres-exporter
+    image: prometheuscommunity/postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://authuser:auth123@auth-db:5432/authdb?sslmode=disable"
+    depends_on:
+      - auth-db
+    networks:
+      - service-network
 
 networks:
   service-network:
     driver: bridge
-  
+
 volumes:
   pgadmin-data:
   auth-db-data:
   mongo-data:
+  grafana-storage:
