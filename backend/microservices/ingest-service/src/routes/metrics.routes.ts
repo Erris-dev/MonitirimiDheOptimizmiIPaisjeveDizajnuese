@@ -4,7 +4,7 @@ import { authMiddleware } from "../middlewares/auth.middleware";
 
 const router = Router();
 
-router.post("/metrics/ingest", authMiddleware, ingestMetrics);
+router.post("/metrics/ingest", ingestMetrics);
 router.get("/metrics", getMetrics);
 
 export default router;

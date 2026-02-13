@@ -26,7 +26,6 @@ app.get('/metrics', async (req, res) => {
   res.end(await register.metrics());
 });
 
-app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 

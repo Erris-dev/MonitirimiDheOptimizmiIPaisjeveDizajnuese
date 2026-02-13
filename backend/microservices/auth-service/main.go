@@ -43,6 +43,8 @@ func main() {
 
 	router := gin.Default()
 
+	// ========================================================
+
 	// 3. Expose the /metrics endpoint
 	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 

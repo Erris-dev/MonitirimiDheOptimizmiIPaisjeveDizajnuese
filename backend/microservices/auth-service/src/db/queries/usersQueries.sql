@@ -64,3 +64,17 @@ WHERE id = $1;
 -- name: FindUserByOauthProvider :one
 SELECT * FROM users 
 WHERE oauth_provider = $1 AND oauth_provider_id = $2;
+
+-- name: GetUserWithLatestDevice :one
+-- name: GetUserWithLatestDevice :one
+SELECT 
+    u.id as user_id, 
+    u.email, 
+    u.created_at as user_created_at,
+    d.device_name, 
+    d.last_seen
+FROM users u
+LEFT JOIN devices d ON u.id = d.user_id
+WHERE u.id = $1
+ORDER BY d.last_seen DESC
+LIMIT 1;

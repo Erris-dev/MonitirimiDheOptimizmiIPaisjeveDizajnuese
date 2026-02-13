@@ -79,6 +79,25 @@ services:
       - auth-db
     networks:
       - service-network
+
+  # ================= Frontend =================
+  frontend:
+    container_name: health-frontend
+    build:
+      context: ./frontend # Adjust this path to your react folder
+      dockerfile: Dockerfile
+    ports:
+      - "3002:80"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Anonymous volume to prevent local overwrite
+    environment:
+      - VITE_API_URL=http://localhost:80 # Points to your API Gateway
+    stdin_open: true # Keeps the terminal interactive
+    tty: true
+    networks:
+      - service-network
+
   # ================= API Gateways =================
   api-gateway:
     build:

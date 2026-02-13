@@ -2,13 +2,21 @@
     "name": "monitorimidheoptimizmiipaisjevedizajnuese",
     "private": true,
     "version": "1.0.0",
-    "scripts": {
-        "dev:auth": "docker-compose up auth-service",
-        "dev:ingest": "docker-compose up --build zookeeper kafka ingest-service",
-        "sqlc:generate": "sqlc generate -f ./backend/microservices/auth-service/sqlc.yaml",
-        "sqlc:dev": "sqlc dev",
-        "auth:migrate": "docker compose exec auth-service goose -dir ./src/db/migrations postgres \"postgres://authuser:auth123@auth-db:5432/authdb?sslmode=disable\" up"
-    },
+   "scripts": {
+
+    "deps:auth": "cd backend/microservices/auth-service && go mod tidy",
+    "deps:processing": "cd backend/microservices/processing-service && pip install -r requirements.txt",
+    "deps:node": "cd backend/microservices/analytics-service && npm install && cd ../ingest-service && npm install && cd ../../../frontend && npm install",
+    "deps:all": "npm run deps:auth && npm run deps:processing && npm run deps:node",
+
+    "sqlc:generate": "sqlc generate -f ./backend/microservices/auth-service/sqlc.yaml",
+    "auth:migrate": "docker-compose exec auth-service goose -dir ./backend/microservices/auth-service/src/db/migrations postgres \"postgres://authuser:auth123@auth-db:5432/authdb?sslmode=disable\" up",
+
+    "up:all": "docker-compose up --build",
+
+
+    "setup:all": "npm run deps:all && npm run sqlc:generate && npm run auth:migrate && npm run up:all"
+  },
     "devDependencies": {
         "concurrently": "^8.2.2"
     },

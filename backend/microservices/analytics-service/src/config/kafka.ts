@@ -12,5 +12,9 @@ export const kafka = new Kafka({
   clientId: 'analytical-service',
   brokers: BROKERS,
   logLevel: logLevel.NOTHING,
-  logCreator: customLogger
-});
+  logCreator: customLogger,
+  retry: {
+    initialRetryTime: 300,
+    retries: 10
+  }
+})

@@ -259,6 +259,41 @@ func (q *Queries) FindUserByOauthProvider(ctx context.Context, arg FindUserByOau
 	return i, err
 }
 
+const getUserWithLatestDevice = `-- name: GetUserWithLatestDevice :one
+SELECT 
+    u.id as user_id, 
+    u.email, 
+    u.created_at as user_created_at,
+    d.device_name, 
+    d.last_seen
+FROM users u
+LEFT JOIN devices d ON u.id = d.user_id
+WHERE u.id = $1
+ORDER BY d.last_seen DESC
+LIMIT 1
+`
+
+type GetUserWithLatestDeviceRow struct {
+	UserID        pgtype.UUID      `json:"user_id"`
+	Email         string           `json:"email"`
+	UserCreatedAt pgtype.Timestamp `json:"user_created_at"`
+	DeviceName    pgtype.Text      `json:"device_name"`
+	LastSeen      pgtype.Timestamp `json:"last_seen"`
+}
+
+func (q *Queries) GetUserWithLatestDevice(ctx context.Context, id pgtype.UUID) (GetUserWithLatestDeviceRow, error) {
+	row := q.db.QueryRow(ctx, getUserWithLatestDevice, id)
+	var i GetUserWithLatestDeviceRow
+	err := row.Scan(
+		&i.UserID,
+		&i.Email,
+		&i.UserCreatedAt,
+		&i.DeviceName,
+		&i.LastSeen,
+	)
+	return i, err
+}
+
 const updateDeviceLastSeen = `-- name: UpdateDeviceLastSeen :exec
 UPDATE devices 
 SET last_seen = $2 

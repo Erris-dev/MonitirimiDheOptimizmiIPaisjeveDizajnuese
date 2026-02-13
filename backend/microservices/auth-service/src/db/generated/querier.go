@@ -20,6 +20,7 @@ type Querier interface {
 	FindRoleByName(ctx context.Context, name string) (Role, error)
 	FindUserByEmail(ctx context.Context, email string) (User, error)
 	FindUserByOauthProvider(ctx context.Context, arg FindUserByOauthProviderParams) (User, error)
+	GetUserWithLatestDevice(ctx context.Context, id pgtype.UUID) (GetUserWithLatestDeviceRow, error)
 	UpdateDeviceLastSeen(ctx context.Context, arg UpdateDeviceLastSeenParams) error
 }
 

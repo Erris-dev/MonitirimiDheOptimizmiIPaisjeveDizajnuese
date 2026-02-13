@@ -290,14 +290,5 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 	c.SetCookie("access_token", accessToken, 15*60, "/", "", false, true)        // 15 minutes
 	c.SetCookie("refresh_token", refreshToken, 7*24*60*60, "/", "", false, true) // 7 days
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Logged in with Google successfully",
-		"user": gin.H{
-			"id":         user.ID,
-			"email":      user.Email,
-			"name":       googleUser.Name,
-			"picture":    googleUser.Picture,
-			"created_at": user.CreatedAt,
-		},
-	})
+	c.Redirect(http.StatusTemporaryRedirect, "http://localhost:3002/dashboard")
 }

@@ -183,8 +183,8 @@ func (rc *AuthController) Register(c *gin.Context) {
 	// 7. Set cookies and respond (same as login)
 	// -------------------------------------------------
 	c.SetSameSite(http.SameSiteStrictMode)
-	c.SetCookie("access_token", accessToken, 15*60, "/", "", true, true)        // 15 min
-	c.SetCookie("refresh_token", refreshToken, 7*24*60*60, "/", "", true, true) // 7 days
+	c.SetCookie("access_token", accessToken, 15*60, "/", "", false, true)        // 15 min
+	c.SetCookie("refresh_token", refreshToken, 7*24*60*60, "/", "", false, true) // 7 days
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "User registered and logged in successfully",

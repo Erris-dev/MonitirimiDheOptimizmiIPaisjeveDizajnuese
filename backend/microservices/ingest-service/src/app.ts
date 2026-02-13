@@ -25,7 +25,6 @@ app.get("/metrics", async (req, res) => {
 });
 
 // --- MIDDLEWARE & BUSINESS ROUTES ---
-app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
 

@@ -29,6 +29,12 @@ type LoginResponse struct {
 	ID        pgtype.UUID      `json:"id"`
 	Email     string           `json:"email"`
 	CreatedAt pgtype.Timestamp `json:"created_at"`
+	Device    DeviceResponse   `json:"device"`
+}
+type DeviceResponse struct {
+	Name     string    `json:"name"`
+	Type     string    `json:"type"`
+	LastSeen time.Time `json:"last_seen"`
 }
 
 func (ac *AuthController) Login(c *gin.Context) {
@@ -144,6 +150,9 @@ func (ac *AuthController) Login(c *gin.Context) {
 		// non-critical, continue
 	}
 
+	var finalDeviceName string = deviceName
+	var finalDeviceType string = deviceType
+
 	if err == nil && existingDevice.Valid {
 		// Update existing device
 		err = ac.db.UpdateDeviceLastSeen(ctx, generated.UpdateDeviceLastSeenParams{
@@ -153,6 +162,8 @@ func (ac *AuthController) Login(c *gin.Context) {
 		if err != nil {
 			log.Printf("Failed to update device last_seen: %v", err)
 		}
+		finalDeviceName = deviceName
+
 	} else {
 		// Create new device
 		_, err = ac.db.CreateDevice(ctx, generated.CreateDeviceParams{
@@ -170,15 +181,19 @@ func (ac *AuthController) Login(c *gin.Context) {
 
 	// 6. Set cookies and respond
 	c.SetSameSite(http.SameSiteStrictMode)
-	c.SetCookie("access_token", accessToken, 15*60, "/", "", true, true)        // 15 minutes
-	c.SetCookie("refresh_token", refreshToken, 7*24*60*60, "/", "", true, true) // 7 days
+	c.SetCookie("access_token", accessToken, 15*60, "/", "", false, true)        // 15 minutes
+	c.SetCookie("refresh_token", refreshToken, 7*24*60*60, "/", "", false, true) // 7 days
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Logged in successfully",
 		"user": LoginResponse{
 			ID:        user.ID,
 			Email:     user.Email,
-			CreatedAt: user.CreatedAt,
+			CreatedAt: user.CreatedAt, Device: DeviceResponse{
+				Name:     finalDeviceName,
+				Type:     finalDeviceType,
+				LastSeen: time.Now(), // We just updated/created it
+			},
 		},
 	})
 }
