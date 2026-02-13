@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../lib/axios';
+
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -179,6 +180,18 @@ const LoginPage: React.FC = () => {
         <p className="text-center text-xs text-slate-500 mt-4">
           By signing in, you agree to our Terms of Service.
         </p>
+        <div className="text-center mt-6">
+  <p className="text-sm text-slate-400">
+    Don’t have an account?{' '}
+    <Link
+      to="/register"
+      className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+    >
+      Create one
+    </Link>
+  </p>
+</div>
+
       </div>
     </div>
   );
